@@ -25,4 +25,38 @@ protected:
 	FTargetData Target;
 };
 
+class Seek : public ISteeringBehavior
+{
+public:
+	Seek() = default;
+	virtual ~Seek() override = default;
+
+	// Steering
+
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Flee : public Seek
+{
+public:
+	Flee() = default;
+	virtual ~Flee() override = default;
+
+	// Steering
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Arrive : public Seek
+{
+public:
+	Arrive() = default;
+	virtual ~Arrive() override = default;
+	
+	// Steering
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	float m_SlowRadius = 60.0f;
+	float m_TargetRadius = 30.0f;
+	float m_OriginalMaxSpeed = -1; // Set max speed to an impossible value so you only ever set it once
+};
+
 // Your own SteeringBehaviors should follow here...
