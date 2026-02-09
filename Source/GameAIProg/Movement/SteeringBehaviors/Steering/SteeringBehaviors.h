@@ -54,9 +54,19 @@ public:
 	
 	// Steering
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
-	float m_SlowRadius = 60.0f;
-	float m_TargetRadius = 30.0f;
+	float m_SlowRadius = 600.0f;
+	float m_TargetRadius = 300.0f;
 	float m_OriginalMaxSpeed = -1; // Set max speed to an impossible value so you only ever set it once
+};
+
+class Face : public ISteeringBehavior
+{
+public:
+	Face() = default;
+	virtual ~Face() override = default;
+	
+	// Steering
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
 
 // Your own SteeringBehaviors should follow here...

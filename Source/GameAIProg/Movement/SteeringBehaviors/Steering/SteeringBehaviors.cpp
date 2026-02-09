@@ -1,4 +1,6 @@
 #include "SteeringBehaviors.h"
+
+#include "MeshPaintVisualize.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
 
 //SEEK
@@ -45,13 +47,20 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	 	
 	 else if (DistancePlayerToTarget < m_TargetRadius)
 	 {
-	 	Agent.SetMaxLinearSpeed(0);
+	 	Agent.SetMaxLinearSpeed(0.f);
 	 }
 	
 	else Agent.SetMaxLinearSpeed(m_OriginalMaxSpeed);
 	
 	// Debug
 	
+	return Steering;
+}
+
+SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{};
+	Steering.AngularVelocity = 0.5;
 	return Steering;
 }
 
