@@ -69,4 +69,38 @@ public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
 
+class Pursuit : public Seek
+{
+public:
+	Pursuit() = default;
+	virtual ~Pursuit() override = default;
+	
+	// Steering
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	
+};
+
+class Evade : public Pursuit
+{
+public:
+	Evade() = default;
+	virtual ~Evade() override = default;
+	
+	// Steering
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	
+};
+
+class Wander : public Seek
+{
+public:
+	Wander() = default;
+	virtual ~Wander() override = default;
+	
+	// Steering
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	float m_CircleDistance = 300.0f;
+	float m_CircleRadius = 150.0f;
+};
+
 // Your own SteeringBehaviors should follow here...

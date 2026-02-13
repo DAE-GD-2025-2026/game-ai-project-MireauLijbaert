@@ -60,7 +60,45 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{};
-	Steering.AngularVelocity = 0.5;
+	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
+	Agent.SetMaxLinearSpeed(0.f);
+	
+	return Steering;
+}
+
+SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{};
+	float DistancePlayerToTarget = (Target.Position - Agent.GetPosition()).Length();
+	float TimeToArrive = (DistancePlayerToTarget/ Agent.GetMaxLinearSpeed());
+	FVector2D PredictedTarget = Target.Position + TimeToArrive*Target.LinearVelocity;
+	Target.Position = PredictedTarget;
+	Steering = Seek::CalculateSteering(DeltaT, Agent);
+	
+	return Steering;
+}
+
+SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{Pursuit::CalculateSteering(DeltaT, Agent)};
+	Steering.LinearVelocity *= -1.f;
+	return Steering;
+	
+}
+
+SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{};
+	FVector2D CircleCenter = Agent.GetPosition() + Agent.GetLinearVelocity() * m_CircleDistance;
+	float Angle = FMath::FRandRange(0.f, 360.f);
+	
+	FVector2D Offset;
+	Offset.X = FMath::Cos(Angle) * m_CircleRadius;
+	Offset.Y = FMath::Sin(Angle) * m_CircleRadius;
+	
+	Target.Position = CircleCenter + Offset;
+	Steering = Seek::CalculateSteering(DeltaT, Agent);
+	
 	return Steering;
 }
 
