@@ -11,7 +11,8 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 
 	// Add debug rendering
-
+	
+	
 	return Steering;
 }
 
@@ -36,16 +37,16 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	}
 	
 	SteeringOutput Steering{Seek::CalculateSteering(DeltaT, Agent)};
-	float DistancePlayerToTarget = (Target.Position - Agent.GetPosition()).Length();
+	float DistanceAgentToTarget = (Target.Position - Agent.GetPosition()).Length();
 	
-	 if (DistancePlayerToTarget < m_SlowRadius)
+	 if (DistanceAgentToTarget < m_SlowRadius)
 	 {
 	 	// Calculate how far along the target is between the SlowRadius and the target radius
-	 	float MaxSpeedScalePercentage = (DistancePlayerToTarget - m_TargetRadius) / (m_SlowRadius - m_TargetRadius);
+	 	float MaxSpeedScalePercentage = (DistanceAgentToTarget - m_TargetRadius) / (m_SlowRadius - m_TargetRadius);
 	 	Agent.SetMaxLinearSpeed(MaxSpeedScalePercentage*m_OriginalMaxSpeed);
 	 }
 	 	
-	 else if (DistancePlayerToTarget < m_TargetRadius)
+	 else if (DistanceAgentToTarget < m_TargetRadius)
 	 {
 	 	Agent.SetMaxLinearSpeed(0.f);
 	 }
@@ -60,8 +61,34 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{};
-	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
-	Agent.SetMaxLinearSpeed(0.f);
+	FVector2D DistanceAgentToTarget = (Target.Position - Agent.GetPosition()  );
+	float DesiredAngle = FMath::RadiansToDegrees(atan2(DistanceAgentToTarget.Y, DistanceAgentToTarget.X));
+	// Agent Forward is flipped (without it face uses the opposite direction)
+	float CurrentAngle = Agent.GetRotation();
+	float DeltaAngle = FMath::FindDeltaAngleDegrees(DesiredAngle, CurrentAngle);
+	//flip deltaAngle because unreal has a flipped forward
+	DeltaAngle *= -1.f;
+	if (FMath::Abs(DeltaAngle) < 0.1f)
+	{
+		Steering.AngularVelocity = 0.f;
+	}
+	else
+	{
+		float MaxAngularSpeed = Agent.GetMaxAngularSpeed();
+		if (DeltaAngle < 0) Steering.AngularVelocity = -MaxAngularSpeed;
+		else Steering.AngularVelocity = MaxAngularSpeed;
+		// Slow down when low values are reached so the agent doesn't oscillate around the target angle
+		if (FMath::Abs(DeltaAngle) < 2.f) Steering.AngularVelocity *= 0.05f;
+		else if (FMath::Abs(DeltaAngle) < 20.f) Steering.AngularVelocity *= 0.5f;
+	}
+	
+	// Debug
+	if (GEngine) // make sure the engine exists
+	{
+		FString Msg = FString::Printf(TEXT("DeltaAngle: %f"), DeltaAngle);
+		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
+	}
+	
 	
 	return Steering;
 }
