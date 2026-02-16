@@ -12,7 +12,12 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 	// Add debug rendering
 	// Draw Target
-	DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
+	if (Agent.GetDebugRenderingEnabled())
+	{
+		DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
+		DrawDebugLine(Agent.GetWorld(),Agent.GetActorLocation(), Agent.GetActorLocation() + Agent.GetActorForwardVector()*(Agent.GetLinearVelocity().Length()/2), FColor::Cyan);
+	}
+	
 	
 	return Steering;
 }
@@ -22,10 +27,7 @@ SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{Seek::CalculateSteering(DeltaT, Agent)};
 	Steering.LinearVelocity *= -1.f; // Flee is just the opposite of Seek, so we can reuse its logic and just invert the velocity
-
 	// Add debug rendering
-	// Draw Target
-	DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
 	
 	return Steering;
 }
@@ -57,8 +59,14 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	else Agent.SetMaxLinearSpeed(m_OriginalMaxSpeed);
 	
 	// Debug
-	// Draw Target
-	DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
+	if (Agent.GetDebugRenderingEnabled())
+	{
+		DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetActorLocation()), m_SlowRadius, 10, FColor::Blue, false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
+		DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetActorLocation()), m_TargetRadius, 10, FColor::Red, false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
+		
+		
+	
+	}
 	
 	return Steering;
 }
@@ -89,15 +97,16 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	
 	// Debug
 	// Draw Target
-	DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
-	if (GEngine) // make sure the engine exists
+	if (Agent.GetDebugRenderingEnabled())
 	{
-		FString Msg = FString::Printf(TEXT("DeltaAngle: %f"), DeltaAngle);
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
+		DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
+		if (GEngine) // make sure the engine exists
+		{
+			FString Msg = FString::Printf(TEXT("DeltaAngle: %f"), DeltaAngle);
+			GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
+		}
 	}
-	
-	
-	
+
 	return Steering;
 }
 
@@ -111,9 +120,6 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Steering = Seek::CalculateSteering(DeltaT, Agent);
 	
 	// Debug
-	//Draw Target
-	DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
-	
 	return Steering;
 }
 
@@ -121,9 +127,6 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{Pursuit::CalculateSteering(DeltaT, Agent)};
 	Steering.LinearVelocity *= -1.f;
-	// Draw Target
-	DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position, 0), 10, FColor::Yellow );
-	DrawDebugCircle(Agent.GetWorld(), FVector(Target.Position,0 ), 200, 10, FColor::Blue, false, -1.f, 0.f, 2.f, FVector::RightVector, FVector::ForwardVector);
 	
 	return Steering;
 	
