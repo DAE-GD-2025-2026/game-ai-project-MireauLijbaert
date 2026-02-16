@@ -80,9 +80,7 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	float DesiredAngle = FMath::RadiansToDegrees(atan2(DistanceAgentToTarget.Y, DistanceAgentToTarget.X));
 	// Agent Forward is flipped (without it face uses the opposite direction)
 	float CurrentAngle = Agent.GetRotation();
-	float DeltaAngle = FMath::FindDeltaAngleDegrees(DesiredAngle, CurrentAngle);
-	//flip deltaAngle because unreal has a flipped forward
-	DeltaAngle *= -1.f;
+	float DeltaAngle = FMath::FindDeltaAngleDegrees( CurrentAngle, DesiredAngle);
 	if (FMath::Abs(DeltaAngle) < 0.1f)
 	{
 		Steering.AngularVelocity = 0.f;
