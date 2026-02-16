@@ -14,8 +14,11 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	// Draw Target
 	if (Agent.GetDebugRenderingEnabled())
 	{
+		FVector VelocityTowardsTarget = Agent.GetVelocity().ProjectOnTo(FVector(Steering.LinearVelocity, 0));
 		DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
-		DrawDebugLine(Agent.GetWorld(),Agent.GetActorLocation(), Agent.GetActorLocation() + Agent.GetActorForwardVector()*(Agent.GetLinearVelocity().Length()/2), FColor::Cyan);
+		DrawDebugLine(Agent.GetWorld(),Agent.GetActorLocation(),
+			Agent.GetActorLocation() + Agent.GetActorForwardVector()*(Agent.GetLinearVelocity().Length()/2), FColor::Cyan);
+		DrawDebugLine(Agent.GetWorld(),Agent.GetActorLocation(), Agent.GetActorLocation() + VelocityTowardsTarget/2, FColor::Magenta );
 	}
 	
 	
@@ -61,11 +64,10 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	// Debug
 	if (Agent.GetDebugRenderingEnabled())
 	{
-		DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetActorLocation()), m_SlowRadius, 10, FColor::Blue, false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
-		DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetActorLocation()), m_TargetRadius, 10, FColor::Red, false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
-		
-		
-	
+		DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetActorLocation()), m_SlowRadius, 10, FColor::Blue,
+			false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
+		DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetActorLocation()), m_TargetRadius, 10, FColor::Red,
+			false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
 	}
 	
 	return Steering;
@@ -129,7 +131,6 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Steering.LinearVelocity *= -1.f;
 	
 	return Steering;
-	
 }
 
 SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
@@ -148,7 +149,8 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Steering = Seek::CalculateSteering(DeltaT, Agent);
 	
 	// Draw Target
-	DrawDebugCircle(Agent.GetWorld(), FVector(CircleCenter, 0), m_CircleRadius, 10, FColor::Blue, false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
+	DrawDebugCircle(Agent.GetWorld(), FVector(CircleCenter, 0), m_CircleRadius, 10, FColor::Blue,
+		false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
 	if (GEngine) // make sure the engine exists
 	{
 		FString Msg = FString::Printf(TEXT("m_Angle: %f"), m_Angle);
