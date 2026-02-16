@@ -101,6 +101,7 @@ public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 	float m_CircleDistance = 300.0f;
 	float m_CircleRadius = 150.0f;
+	float m_MaxAngleChange = 30.f;
+	float m_Angle = 0.0f;
 };
 
-// Your own SteeringBehaviors should follow here...
