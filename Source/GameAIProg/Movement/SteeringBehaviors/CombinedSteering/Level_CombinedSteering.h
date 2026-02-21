@@ -26,6 +26,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void BeginDestroy() override;
+	
+	void AddCombinedAgent();
+	void RemoveCombinedAgent();
+	
+	void AddPriorityAgent();
+	void RemovePriorityAgent();
 
 private:
 	//Datamembers

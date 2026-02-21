@@ -1,6 +1,7 @@
 #include "Level_CombinedSteering.h"
 
 #include "imgui.h"
+#include "Movement/SteeringBehaviors/Steering/Level_SteeringBehaviors.h"
 
 
 // Sets default values
@@ -14,7 +15,6 @@ ALevel_CombinedSteering::ALevel_CombinedSteering()
 void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
