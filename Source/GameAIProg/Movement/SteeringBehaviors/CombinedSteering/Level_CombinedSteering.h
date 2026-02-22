@@ -7,6 +7,9 @@
 #include "GameAIProg/Shared/Level_Base.h"
 #include "GameAIProg/Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
+#include <memory>
+#include <vector>
+#include <string>
 #include "Level_CombinedSteering.generated.h"
 
 UCLASS()
@@ -26,17 +29,41 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void BeginDestroy() override;
-	
-	void AddCombinedAgent();
-	void RemoveCombinedAgent();
-	
-	void AddPriorityAgent();
-	void RemovePriorityAgent();
 
 private:
 	//Datamembers
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 
+	// Copied over from Level_SteeringBehaviors with modifications
+	enum class CombinedBehaviorTypes
+	{
+		Blended,
+		Priority,
+
+		// @ End
+		Count
+	};
+
+	struct ImGui_Agent final
+	{
+		ASteeringAgent* Agent{nullptr};
+		std::unique_ptr<ISteeringBehavior> Behavior{nullptr};
+		int SelectedBehavior{static_cast<int>(CombinedBehaviorTypes::Blended)};
+		int SelectedTarget = -1;
+	};
+	
+	std::vector<ImGui_Agent> SteeringAgents{};
+	std::vector<std::string> TargetLabels{};
+	
+	int AgentIndexToRemove = -1;
+	
+	bool AddAgent(CombinedBehaviorTypes BehaviorType = CombinedBehaviorTypes::Blended, bool AutoOrient = true);
+	void RemoveAgent(unsigned int Index);
+	void SetAgentBehavior(ImGui_Agent& Agent);
+
+	void RefreshTargetLabels();
+	void UpdateTarget(ImGui_Agent& Agent);
+	void RefreshAgentTargets(unsigned int IndexRemoved);
 	
 };
