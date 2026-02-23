@@ -17,6 +17,50 @@ ALevel_CombinedSteering::ALevel_CombinedSteering()
 void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// Make drunk agent
+	// Spawn unreal actor
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
+	m_DrunkAgent = GetWorld()->SpawnActor<ASteeringAgent>(
+		SteeringAgentClass,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (!m_DrunkAgent) return;
+	
+	// Configure DrunkAgent Behaviour
+	ISteeringBehavior* WanderBehavior = new Wander{};
+	ISteeringBehavior* DrunkSteering = new BlendedSteering{
+		{
+			{m_SeekBehaviour , 0.5f}, 
+			{WanderBehavior , 0.5f}
+			
+		}};
+	m_DrunkAgent->SetSteeringBehavior(DrunkSteering);
+	
+	// Make evading agent
+	// Spawn unreal actor
+	ASteeringAgent* EvadingAgent = GetWorld()->SpawnActor<ASteeringAgent>(
+		SteeringAgentClass,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (!EvadingAgent) return;
+	
+	// Configure EvadingAgent Behaviour
+	ISteeringBehavior* EvadingSteering = new PrioritySteering{
+			{
+				m_EvadeBehaviour, 
+				WanderBehavior
+			
+			}};
+	EvadingAgent->SetSteeringBehavior(EvadingSteering);
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
@@ -29,6 +73,7 @@ void ALevel_CombinedSteering::BeginDestroy()
 void ALevel_CombinedSteering::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 	
 #pragma region UI
 	//UI
@@ -102,109 +147,17 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	
 	// Combined Steering Update
  // TODO: implement handling mouse click input for seek
+	m_SeekBehaviour->SetTarget(MouseTarget);
+	DrawDebugPoint(GetWorld(), FVector(MouseTarget.Position, 0), 10, FColor::Yellow );
+	
+	
  // TODO: implement Make sure to also evade the wanderer
+	// Make the drunk agent the evading agent's target
+	FTargetData Target;
+	Target.Position = m_DrunkAgent->GetPosition();
+	Target.Orientation = m_DrunkAgent->GetRotation();
+	Target.LinearVelocity = m_DrunkAgent->GetLinearVelocity();
+	Target.AngularVelocity = m_DrunkAgent->GetAngularVelocity();
 	
-	for (ImGui_Agent& a : SteeringAgents)
-	{
-		if (a.Agent)
-		{
-			UpdateTarget(a);
-		}
-	}
-}
-
-bool ALevel_CombinedSteering::AddAgent(CombinedBehaviorTypes BehaviorType, bool AutoOrient)
-{
-	ImGui_Agent ImGuiAgent = {};
-	ImGuiAgent.Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, FRotator::ZeroRotator);
-	if (IsValid(ImGuiAgent.Agent))
-	{
-		ImGuiAgent.SelectedBehavior = static_cast<int>(BehaviorType);
-		ImGuiAgent.SelectedTarget = -1; // Mouse
-		
-		SetAgentBehavior(ImGuiAgent);
-
-		SteeringAgents.push_back(std::move(ImGuiAgent));
-		
-		RefreshTargetLabels();
-
-		return true;
-	}
-
-	return false;
-}
-
-void ALevel_CombinedSteering::RemoveAgent(unsigned int Index)
-{
-	SteeringAgents[Index].Agent->Destroy();
-	SteeringAgents.erase(SteeringAgents.begin() + Index);
-
-	RefreshTargetLabels();
-	RefreshAgentTargets(Index);
-}
-
-void ALevel_CombinedSteering::SetAgentBehavior(ImGui_Agent& Agent)
-{
-	Agent.Behavior.reset();
-	
-	switch (static_cast<CombinedBehaviorTypes>(Agent.SelectedBehavior))
-	{
-	case CombinedBehaviorTypes::Blended:
-		
-	default:
-		assert(false); // Incorrect Agent Behavior gotten during SetAgentBehavior()	
-	}
-
-	UpdateTarget(Agent);
-	
-	Agent.Agent->SetSteeringBehavior(Agent.Behavior.get());
-}
-
-void ALevel_CombinedSteering::RefreshTargetLabels()
-{
-	TargetLabels.clear();
-	
-	TargetLabels.push_back("Mouse");
-	for (int i{0}; i < SteeringAgents.size(); ++i)
-	{
-		TargetLabels.push_back(std::format("Agent {}", i));
-	}
-}
-
-void ALevel_CombinedSteering::UpdateTarget(ImGui_Agent& Agent)
-{
-	// Note: MouseTarget position is updated via Level BP every click
-	
-	bool const bUseMouseAsTarget = Agent.SelectedTarget < 0;
-	if (!bUseMouseAsTarget)
-	{
-		ASteeringAgent* const TargetAgent = SteeringAgents[Agent.SelectedTarget].Agent;
-
-		FTargetData Target;
-		Target.Position = TargetAgent->GetPosition();
-		Target.Orientation = TargetAgent->GetRotation();
-		Target.LinearVelocity = TargetAgent->GetLinearVelocity();
-		Target.AngularVelocity = TargetAgent->GetAngularVelocity();
-
-		Agent.Behavior->SetTarget(Target);
-	}
-	else
-	{
-		Agent.Behavior->SetTarget(MouseTarget);
-	}
-}
-
-void ALevel_CombinedSteering::RefreshAgentTargets(unsigned int IndexRemoved)
-{
-	for (UINT i = 0; i < SteeringAgents.size(); ++i)
-	{
-		if (i >= IndexRemoved)
-		{
-			auto& Agent = SteeringAgents[i];
-			if (Agent.SelectedTarget == IndexRemoved || i  == Agent.SelectedTarget)
-			{
-				--Agent.SelectedTarget;
-			}
-		}
-	}
+	m_EvadeBehaviour->SetTarget(Target);
 }

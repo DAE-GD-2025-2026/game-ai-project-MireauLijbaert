@@ -54,6 +54,8 @@ public:
 	
 	// Steering
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+
+private:	
 	float m_SlowRadius = 600.0f;
 	float m_TargetRadius = 300.0f;
 	float m_OriginalMaxSpeed = -1; // Set max speed to an impossible value so you only ever set it once
@@ -89,6 +91,8 @@ public:
 	// Steering
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 	
+private:
+	float m_EvadeRadius = 450.0f;
 };
 
 class Wander : public Seek
@@ -99,6 +103,8 @@ public:
 	
 	// Steering
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	
+private:	
 	float m_CircleDistance = 300.0f;
 	float m_CircleRadius = 150.0f;
 	float m_MaxAngleChange = 30.f;
