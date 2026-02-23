@@ -159,17 +159,17 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	
 	// Combined Steering Update
  // TODO: implement handling mouse click input for seek
-	m_SeekBehaviour->SetTarget(MouseTarget);
+	m_pSeekBehaviour->SetTarget(MouseTarget);
 	DrawDebugPoint(GetWorld(), FVector(MouseTarget.Position, 0), 10, FColor::Yellow );
 	
 	
  // TODO: implement Make sure to also evade the wanderer
 	// Make the drunk agent the evading agent's target
 	FTargetData Target;
-	Target.Position = m_DrunkAgent->GetPosition();
-	Target.Orientation = m_DrunkAgent->GetRotation();
-	Target.LinearVelocity = m_DrunkAgent->GetLinearVelocity();
-	Target.AngularVelocity = m_DrunkAgent->GetAngularVelocity();
+	Target.Position = m_pDrunkAgent->GetPosition();
+	Target.Orientation = m_pDrunkAgent->GetRotation();
+	Target.LinearVelocity = m_pDrunkAgent->GetLinearVelocity();
+	Target.AngularVelocity = m_pDrunkAgent->GetAngularVelocity();
 	
-	m_EvadeBehaviour->SetTarget(Target);
+	m_pEvadeBehaviour->SetTarget(Target);
 }
