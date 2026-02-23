@@ -23,50 +23,62 @@ void ALevel_CombinedSteering::BeginPlay()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 
-	m_DrunkAgent = GetWorld()->SpawnActor<ASteeringAgent>(
+	m_pDrunkAgent = GetWorld()->SpawnActor<ASteeringAgent>(
 		SteeringAgentClass,
 		FVector::ZeroVector,
 		FRotator::ZeroRotator,
 		SpawnParams
 	);
-
-	if (!m_DrunkAgent) return;
 	
 	// Configure DrunkAgent Behaviour
-	ISteeringBehavior* WanderBehavior = new Wander{};
-	ISteeringBehavior* DrunkSteering = new BlendedSteering{
-		{
-			{m_SeekBehaviour , 0.5f}, 
-			{WanderBehavior , 0.5f}
+	if (!m_pDrunkAgent) return;
+	m_pSeekBehaviour =  new Seek{};
+	m_pDrunkWanderBehavior = new Wander{};
+	m_pDrunkSteering = new BlendedSteering{
+				{
+					{m_pSeekBehaviour , 0.5f}, 
+					{m_pDrunkWanderBehavior , 0.5f}
 			
-		}};
-	m_DrunkAgent->SetSteeringBehavior(DrunkSteering);
+				}};
+	m_pDrunkAgent->SetSteeringBehavior(m_pDrunkSteering);
 	
 	// Make evading agent
 	// Spawn unreal actor
-	ASteeringAgent* EvadingAgent = GetWorld()->SpawnActor<ASteeringAgent>(
+	m_pEvadingAgent = GetWorld()->SpawnActor<ASteeringAgent>(
 		SteeringAgentClass,
 		FVector::ZeroVector,
 		FRotator::ZeroRotator,
 		SpawnParams
 	);
 
-	if (!EvadingAgent) return;
-	
 	// Configure EvadingAgent Behaviour
-	ISteeringBehavior* EvadingSteering = new PrioritySteering{
+	if (!m_pEvadingAgent) return;
+	m_pEvadeBehaviour = new Evade{};
+	m_pEvadingWanderBehaviour = new Wander{};
+	m_pEvadingSteering = new PrioritySteering{
 			{
-				m_EvadeBehaviour, 
-				WanderBehavior
-			
+				m_pEvadeBehaviour, m_pEvadingWanderBehaviour
 			}};
-	EvadingAgent->SetSteeringBehavior(EvadingSteering);
+	
+	
+	m_pEvadingAgent->SetSteeringBehavior(m_pEvadingSteering);
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
 {
+	// Cleanup Drunk behaviors
+	delete m_pDrunkSteering;
+	delete m_pSeekBehaviour;
+	delete m_pDrunkWanderBehavior;
+	
+	// Cleanup Evading behaviors
+	delete m_pEvadingSteering;
+	delete m_pEvadeBehaviour;
+	delete m_pEvadingWanderBehaviour;
+	
 	Super::BeginDestroy();
-
+	
+	
 }
 
 // Called every frame

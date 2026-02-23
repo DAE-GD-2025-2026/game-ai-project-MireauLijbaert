@@ -34,8 +34,19 @@ private:
 	//Datamembers
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
-	// Make Seek a member variable so we're able to change the target
-	ISteeringBehavior* m_SeekBehaviour =  new Seek{};
-	ISteeringBehavior* m_EvadeBehaviour = new Evade{};
-	ASteeringAgent* m_DrunkAgent;
+	
+	// Drunk agent behaviour
+	ISteeringBehavior* m_pSeekBehaviour{nullptr};
+	ISteeringBehavior* m_pDrunkWanderBehavior{nullptr};
+	ISteeringBehavior* m_pDrunkSteering{nullptr};
+	ASteeringAgent* m_pDrunkAgent{nullptr};
+	
+	// Evading agent behavior
+	ISteeringBehavior* m_pEvadeBehaviour{nullptr};
+	ISteeringBehavior* m_pEvadingWanderBehaviour{nullptr};
+	ISteeringBehavior* m_pEvadingSteering{nullptr};
+	
+	ASteeringAgent* m_pEvadingAgent{nullptr};
+	
+	
 };
