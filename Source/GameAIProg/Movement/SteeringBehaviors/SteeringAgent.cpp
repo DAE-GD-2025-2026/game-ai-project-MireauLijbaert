@@ -30,7 +30,7 @@ void ASteeringAgent::Tick(float DeltaTime)
 	if (SteeringBehavior)
 	{
 		SteeringOutput output = SteeringBehavior->CalculateSteering(DeltaTime, *this);
-		if (output.IsValid())
+		if (output.IsValid)
 		{
 			// Apply linear movement
             AddMovementInput(FVector{output.LinearVelocity, 0.f});

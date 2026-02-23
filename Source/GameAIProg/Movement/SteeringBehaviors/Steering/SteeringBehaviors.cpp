@@ -6,6 +6,7 @@
 //SEEK
 SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{};
 
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
@@ -28,6 +29,7 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 //FLEE
 SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{Seek::CalculateSteering(DeltaT, Agent)};
 	Steering.LinearVelocity *= -1.f; // Flee is just the opposite of Seek, so we can reuse its logic and just invert the velocity
 	// Add debug rendering
@@ -38,6 +40,7 @@ SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 //ARRIVE
 SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(true);
 	// Get original max speed, max speed can never be less than 0 so this should only happen once after construction
 	if (m_OriginalMaxSpeed < 0.f)
 	{
@@ -75,6 +78,7 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(false);
 	SteeringOutput Steering{};
 	FVector2D DistanceAgentToTarget = (Target.Position - Agent.GetPosition()  );
 	float DesiredAngle = FMath::RadiansToDegrees(atan2(DistanceAgentToTarget.Y, DistanceAgentToTarget.X));
@@ -112,6 +116,7 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{};
 	float DistancePlayerToTarget = (Target.Position - Agent.GetPosition()).Length();
 	float TimeToArrive = (DistancePlayerToTarget/ Agent.GetMaxLinearSpeed());
@@ -125,6 +130,7 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{Pursuit::CalculateSteering(DeltaT, Agent)};
 	Steering.LinearVelocity *= -1.f;
 	
@@ -133,6 +139,7 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{};
 	FVector2D CircleCenter = Agent.GetPosition() + FVector2D(Agent.GetActorForwardVector() * m_CircleDistance);
 	m_Angle = FMath::FRandRange(m_Angle - m_MaxAngleChange, m_Angle + m_MaxAngleChange);
