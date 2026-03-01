@@ -14,9 +14,38 @@ Flock::Flock(
 	, FlockSize{ FlockSize }
 	, pAgentToEvade{pAgentToEvade}
 {
+	// Reserve space for the agents in flock and the neighbors, use a big memory to have a memory pool without resizing
 	Agents.SetNum(FlockSize);
-
+	Agents.Reserve(FlockSize);
+	Neighbors.SetNum(FlockSize);
+	Neighbors.Reserve(FlockSize);
+	
+	// Initialize behaviours
+	//std::unique_ptr<Separation> pSeparationBehavior{};
+	pCohesionBehavior = std::make_unique<Cohesion>(this);
+	//std::unique_ptr<VelocityMatch> pVelMatchBehavior{};
+	pSeekBehavior = std::make_unique<Seek>();
+	pWanderBehavior = std::make_unique<Wander>();
+	pEvadeBehavior = std::make_unique<Evade>();
+	pBlendedSteering = std::make_unique<BlendedSteering>(
+	std::vector<BlendedSteering::WeightedBehavior>
+	{
+		{pCohesionBehavior.get(), 0.f},
+		{pSeekBehavior.get(), 0.f},
+		{pWanderBehavior.get(), 0.f},
+		{pEvadeBehavior.get(), 0.f}
+	});
+	pPrioritySteering = std::make_unique<PrioritySteering>(
+	std::vector<ISteeringBehavior*>{pEvadeBehavior.get(), pBlendedSteering.get()}
+	);
+	
  // TODO: initialize the flock and the memory pool
+	for (auto& agent : Agents)
+	{
+		agent = pWorld->SpawnActor<ASteeringAgent>(AgentClass);
+		agent->SetSteeringBehavior(pPrioritySteering.get());
+		agent->SetActorLocation(FVector{0.f, 0.f, 0.f});
+	}
 }
 
 Flock::~Flock()
@@ -98,6 +127,16 @@ void Flock::RenderNeighborhood()
 void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 {
  // TODO: Implement
+	for (auto agent : Agents)
+	{
+		if (agent != pAgent) continue;
+			
+		auto Distance = std::abs((agent->GetPosition() - pAgent->GetPosition()).Length());
+		if (Distance <= NeighborhoodRadius)
+		{
+			Neighbors.Add(agent); 
+		}
+	}
 }
 #endif
 
