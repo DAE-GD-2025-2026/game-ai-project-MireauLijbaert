@@ -126,7 +126,8 @@ void Flock::RenderNeighborhood()
 #ifndef GAMEAI_USE_SPACE_PARTITIONING
 void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 {
- // TODO: Implement
+	// Keeps the nr of neighbors
+	NrOfNeighbors = 0;
 	for (auto agent : Agents)
 	{
 		if (agent != pAgent) continue;
@@ -134,7 +135,10 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 		auto Distance = std::abs((agent->GetPosition() - pAgent->GetPosition()).Length());
 		if (Distance <= NeighborhoodRadius)
 		{
-			Neighbors.Add(agent); 
+			// Only need to change neighbors in the array perposition of nrofneighbors, 
+			// old neighbors still in here (if there were more previously just don't get registers as it's outside of nr of neighbors
+			Neighbors[NrOfNeighbors] = agent;
+			++NrOfNeighbors;
 		}
 	}
 }
