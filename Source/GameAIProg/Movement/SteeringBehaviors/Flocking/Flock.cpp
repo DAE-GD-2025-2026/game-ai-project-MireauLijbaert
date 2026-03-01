@@ -147,17 +147,24 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 FVector2D Flock::GetAverageNeighborPos() const
 {
 	FVector2D avgPosition = FVector2D::ZeroVector;
-
- // TODO: Implement
 	
+	for (int i = 0; i < NrOfNeighbors; ++i)
+	{
+		avgPosition += Neighbors[i]->GetPosition();
+	}
+	avgPosition /= NrOfNeighbors;
 	return avgPosition;
 }
 
 FVector2D Flock::GetAverageNeighborVelocity() const
 {
 	FVector2D avgVelocity = FVector2D::ZeroVector;
-
- // TODO: Implement
+	
+	for (int i = 0; i < NrOfNeighbors; ++i)
+	{
+		avgVelocity += Neighbors[i]->GetLinearVelocity();
+	}
+	avgVelocity /= NrOfNeighbors;
 
 	return avgVelocity;
 }
