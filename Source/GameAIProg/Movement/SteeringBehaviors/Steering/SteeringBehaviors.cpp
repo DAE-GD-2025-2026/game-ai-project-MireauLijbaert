@@ -104,11 +104,11 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	if (Agent.GetDebugRenderingEnabled())
 	{
 		DrawDebugPoint(Agent.GetWorld(),FVector(Target.Position.X, Target.Position.Y, 0), 10, FColor::Yellow );
-		if (GEngine) // make sure the engine exists
-		{
-			FString Msg = FString::Printf(TEXT("DeltaAngle: %f"), DeltaAngle);
-			GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
-		}
+		// if (GEngine) // make sure the engine exists
+		// {
+		// 	FString Msg = FString::Printf(TEXT("DeltaAngle: %f"), DeltaAngle);
+		// 	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
+		// }
 	}
 
 	return Steering;
@@ -160,12 +160,15 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Steering = Seek::CalculateSteering(DeltaT, Agent);
 	
 	// Draw Target
-	DrawDebugCircle(Agent.GetWorld(), FVector(CircleCenter, 0), m_CircleRadius, 10, FColor::Blue,
-		false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
-	if (GEngine) // make sure the engine exists
+	if (Agent.GetDebugRenderingEnabled())
 	{
-		FString Msg = FString::Printf(TEXT("m_Angle: %f"), m_Angle);
-		GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
+		DrawDebugCircle(Agent.GetWorld(), FVector(CircleCenter, 0), m_CircleRadius, 10, FColor::Blue,
+		false, -1.f, 0.f, 4.f, FVector::RightVector, FVector::ForwardVector);
+		// if (GEngine) // make sure the engine exists
+		// {
+		// 	FString Msg = FString::Printf(TEXT("m_Angle: %f"), m_Angle);
+		// 	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, Msg);
+		// }
 	}
 	return Steering;
 }
