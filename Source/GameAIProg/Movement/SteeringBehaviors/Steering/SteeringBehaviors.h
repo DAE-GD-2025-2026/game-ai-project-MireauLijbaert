@@ -92,7 +92,7 @@ public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 	
 private:
-	float m_EvadeRadius = 450.0f;
+	float m_EvadeRadius = 450.0f; 
 };
 
 class Wander : public Seek

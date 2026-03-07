@@ -121,8 +121,14 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	float DistancePlayerToTarget = (Target.Position - Agent.GetPosition()).Length();
 	float TimeToArrive = (DistancePlayerToTarget/ Agent.GetMaxLinearSpeed());
 	FVector2D PredictedTarget = Target.Position + TimeToArrive*Target.LinearVelocity;
+	
+	// save original (otherwise flocking has problems when multiple agents in the flock use the same behavior
+	FVector2D OldTarget = Target.Position; 
 	Target.Position = PredictedTarget;
+	
 	Steering = Seek::CalculateSteering(DeltaT, Agent);
+	
+	Target.Position = OldTarget;
 	
 	// Debug
 	return Steering;
@@ -130,10 +136,16 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Evade instance: %p"), this);
+	
+	
 	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{Pursuit::CalculateSteering(DeltaT, Agent)};
 	Steering.LinearVelocity *= -1.f;
 	float DistanceAgentToTarget = (Target.Position - Agent.GetPosition()).Length();
+	UE_LOG(LogTemp, Warning, TEXT("Agent %s distance: %f"),
+	*Agent.GetName(),
+	DistanceAgentToTarget);
 	if (DistanceAgentToTarget <= m_EvadeRadius)
 	{
 		Steering.IsValid = true;

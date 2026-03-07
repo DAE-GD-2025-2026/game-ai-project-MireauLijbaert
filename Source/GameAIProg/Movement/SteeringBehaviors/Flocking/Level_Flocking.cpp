@@ -19,6 +19,36 @@ void ALevel_Flocking::BeginPlay()
 	TrimWorld->SetTrimWorldSize(3000.f);
 	TrimWorld->bShouldTrimWorld = true;
 
+	// Evade agent
+	pAgentToEvade = GetWorld()->SpawnActor<ASteeringAgent>(
+		SteeringAgentClass,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator
+	);
+	
+	// Give the evade agent a different color to distinguish it
+	if (pAgentToEvade)
+	{
+		if (USkeletalMeshComponent* MeshComp = pAgentToEvade->GetMesh())
+		{
+			for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+			{
+				if (UMaterialInstanceDynamic* MID =
+					MeshComp->CreateAndSetMaterialInstanceDynamic(i))
+				{
+					if (i == 0)	MID->SetVectorParameterValue(TEXT("Color"), FLinearColor::Black);
+					if (i == 1)	MID->SetVectorParameterValue(TEXT("Color"), FLinearColor::Blue);
+				}
+			}
+		}
+	}
+	
+	
+	pWanderBehavior = std::make_unique<Wander>();
+	pAgentToEvade->SetSteeringBehavior(pWanderBehavior.get());
+	pAgentToEvade->SetDebugRenderingEnabled(false);
+	
+	
 	pFlock = TUniquePtr<Flock>(
 		new Flock(
 			GetWorld(),
@@ -34,8 +64,12 @@ void ALevel_Flocking::BeginPlay()
 void ALevel_Flocking::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	pFlock->ImGuiRender(WindowPos, WindowSize);
+	
+	// Tick Agent to evade
+	pAgentToEvade->Tick(DeltaTime);
+	// Tick Flock
 	pFlock->Tick(DeltaTime);
 	pFlock->RenderDebug();
 	if (bUseMouseTarget)

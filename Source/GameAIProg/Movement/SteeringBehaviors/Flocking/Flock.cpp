@@ -24,7 +24,7 @@ Flock::Flock(
 	pAlignmentBehavior = std::make_unique<Alignment>(this);{};
 	pSeekBehavior = std::make_unique<Seek>();
 	pWanderBehavior = std::make_unique<Wander>();
-	pEvadeBehavior = std::make_unique<Evade>();
+	
 	pBlendedSteering = std::make_unique<BlendedSteering>(
 	std::vector<BlendedSteering::WeightedBehavior>
 	{
@@ -32,9 +32,11 @@ Flock::Flock(
 		{pCohesionBehavior.get(), 0.f},
 		{pAlignmentBehavior.get(), 0.f},
 		{pSeekBehavior.get(), 0.f},
-		{pWanderBehavior.get(), 1.f},
-		{pEvadeBehavior.get(), 0.f}
+		{pWanderBehavior.get(), 1.f}
 	});
+	
+	pEvadeBehavior = std::make_unique<Evade>();
+	
 	pPrioritySteering = std::make_unique<PrioritySteering>(
 	std::vector<ISteeringBehavior*>{pEvadeBehavior.get(), pBlendedSteering.get()}
 	);
@@ -47,10 +49,11 @@ Flock::Flock(
 	for (auto& agent : Agents)
 	{
 		agent = pWorld->SpawnActor<ASteeringAgent>(AgentClass, SpawnParams);
-		agent->SetSteeringBehavior(pBlendedSteering.get());
+		agent->SetSteeringBehavior(pPrioritySteering.get());
 		agent->SetActorLocation(FVector( FMath::FRandRange(-1000.f, 1000.f),
 		FMath::FRandRange(-1000.f, 1000.f), 0.f));
 		agent->SetDebugRenderingEnabled(false);
+		agent->SetActorTickEnabled(false);
 	}
 	Agents[0]->SetDebugRenderingEnabled(true);
 }
@@ -62,15 +65,18 @@ Flock::~Flock()
 
 void Flock::Tick(float DeltaTime)
 {
- // TODO: update the flock
- // TODO: for every agent:
-  // TODO: register the neighbors for this agent (-> fill the memory pool with the neighbors for the currently evaluated agent)
-  // TODO: update the agent (-> the steeringbehaviors use the neighbors in the memory pool)
-  // TODO: trim the agent to the world
+	FTargetData Target;
+	Target.Position = pAgentToEvade->GetPosition();
+	Target.Orientation = pAgentToEvade->GetRotation();
+	Target.LinearVelocity = pAgentToEvade->GetLinearVelocity();
+	Target.AngularVelocity = pAgentToEvade->GetAngularVelocity();
+	
+	pEvadeBehavior->SetTarget(Target);
 	for (auto& agent : Agents )
 	{
 		RegisterNeighbors(agent);
 		agent->Tick(DeltaTime);
+		// ADD Trimming
 	}
 }
 
@@ -150,7 +156,6 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 		ImGui::SliderFloat("Alignment", &pBlendedSteering->GetWeightedBehaviorsRef()[2].Weight, 0, 1);
 		ImGui::SliderFloat("Seek", &pBlendedSteering->GetWeightedBehaviorsRef()[3].Weight, 0, 1);
 		ImGui::SliderFloat("Wander", &pBlendedSteering->GetWeightedBehaviorsRef()[4].Weight, 0, 1);
-		ImGui::SliderFloat("Evade", &pBlendedSteering->GetWeightedBehaviorsRef()[5].Weight, 0, 1);
 		ImGui::Spacing();
 		
 		
