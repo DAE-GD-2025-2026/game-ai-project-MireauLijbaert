@@ -43,11 +43,13 @@ CellSpace::CellSpace(UWorld* pWorld, float Width, float Height, int Rows, int Co
 	CellHeight = Height / Rows;
 
 	// TODO create the cells
+	FIntVector Origin = pWorld->OriginLocation;
 	for (int row = 0; row < Rows; ++row)
 	{
 		for (int col = 0; col < Cols; ++col)
 		{
-			Cells.emplace_back(Cell(col * CellWidth, row * CellHeight, CellWidth, CellHeight));
+			
+			Cells.emplace_back(Cell(col * CellWidth - SpaceWidth/2, row * CellHeight - SpaceHeight/2, CellWidth, CellHeight));
 		}
 	}
 }
@@ -125,11 +127,11 @@ void CellSpace::RenderCells() const
 
 		for (size_t i = 0; i < points.size(); ++i)
 		{
-			FVector start(points[i].X, points[i].Y, 5.f);
+			FVector start(points[i].X, points[i].Y, 90.f);
 			FVector end(
 				points[(i + 1) % points.size()].X,
 				points[(i + 1) % points.size()].Y,
-				5.f);
+				90.f);
 
 			DrawDebugLine(pWorld, start, end, FColor::White, false, -1.f, 0, 1.5f);
 		}
@@ -150,8 +152,21 @@ void CellSpace::RenderCells() const
 int CellSpace::PositionToIndex(FVector2D const & Pos) const
 {
 	// TODO Calculate the index of the cell based on the position
-	int rowIndex = std::min(int(Pos.Y / SpaceHeight * NrOfRows), NrOfRows-1);
-	int colIndex = std::min(int(Pos.X / SpaceWidth * NrOfCols), NrOfCols-1);
+	float halfWidth = SpaceWidth * 0.5f;
+	float halfHeight = SpaceHeight * 0.5f;
+
+	int colIndex = FMath::Clamp(
+		int((Pos.X + halfWidth) / CellWidth),
+		0,
+		NrOfCols - 1
+	);
+
+	int rowIndex = FMath::Clamp(
+		int((Pos.Y + halfHeight) / CellHeight),
+		0,
+		NrOfRows - 1
+	);
+
 	return rowIndex * NrOfCols + colIndex;
 }
 

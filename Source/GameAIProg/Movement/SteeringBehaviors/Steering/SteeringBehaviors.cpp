@@ -136,16 +136,10 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
 SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Evade instance: %p"), this);
-	
-	
 	Agent.SetIsAutoOrienting(true);
 	SteeringOutput Steering{Pursuit::CalculateSteering(DeltaT, Agent)};
 	Steering.LinearVelocity *= -1.f;
 	float DistanceAgentToTarget = (Target.Position - Agent.GetPosition()).Length();
-	UE_LOG(LogTemp, Warning, TEXT("Agent %s distance: %f"),
-	*Agent.GetName(),
-	DistanceAgentToTarget);
 	if (DistanceAgentToTarget <= m_EvadeRadius)
 	{
 		Steering.IsValid = true;

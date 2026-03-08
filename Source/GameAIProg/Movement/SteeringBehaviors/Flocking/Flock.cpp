@@ -16,7 +16,11 @@ Flock::Flock(
 {
 	// Reserve space for the agents in flock and the neighbors, use a big memory to have a memory pool without resizing
 	Agents.SetNum(FlockSize);
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+	pPartitionedSpace = std::make_unique<CellSpace>(pWorld,WorldSize, WorldSize, NrOfCellsX, NrOfCellsX, FlockSize );
+#else 
 	Neighbors.SetNum(FlockSize);
+#endif
 	
 	// Initialize behaviours
 	pSeparationBehavior = std::make_unique<Separation>(this);
@@ -50,10 +54,12 @@ Flock::Flock(
 	{
 		agent = pWorld->SpawnActor<ASteeringAgent>(AgentClass, SpawnParams);
 		agent->SetSteeringBehavior(pPrioritySteering.get());
-		agent->SetActorLocation(FVector( FMath::FRandRange(-1000.f, 1000.f),
-		FMath::FRandRange(-1000.f, 1000.f), 0.f));
+		agent->SetActorLocation(FVector( FMath::FRandRange(-WorldSize/2, WorldSize/2),
+		FMath::FRandRange(-WorldSize/2, WorldSize/2), 0.f));
 		agent->SetDebugRenderingEnabled(false);
 		agent->SetActorTickEnabled(false);
+		OldPositions.Add(agent->GetPosition());
+		pPartitionedSpace->AddAgent(*agent);
 	}
 	Agents[0]->SetDebugRenderingEnabled(true);
 }
@@ -72,31 +78,64 @@ void Flock::Tick(float DeltaTime)
 	Target.AngularVelocity = pAgentToEvade->GetAngularVelocity();
 	
 	pEvadeBehavior->SetTarget(Target);
-	for (auto& agent : Agents )
+	
+	for (int i = 0; i < Agents.Num(); ++i)
 	{
+		ASteeringAgent* agent = Agents[i];
+		if (!agent) continue;
+		// Save old position for partitioning
+		FVector2D oldPos = OldPositions[i];
+		
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+		pPartitionedSpace->RegisterNeighbors(*agent, NeighborhoodRadius );
+#else
 		RegisterNeighbors(agent);
+		
+#endif
 		agent->Tick(DeltaTime);
-		// ADD Trimming
+		
+		pPartitionedSpace->UpdateAgentCell(*agent, oldPos);
+		
+		OldPositions[i] = agent->GetPosition();
+		
+		// ADD Trimming CANT FIND A WAY TO TRIM??
 	}
+	// Change to use variable
+	if (!HaveCellsReset)
+	{
+		pPartitionedSpace->EmptyCells();
+		for (auto& agent : Agents)
+		{
+			pPartitionedSpace->AddAgent(*agent);
+		}
+		HaveCellsReset = true;
+	}
+	else if (!HaveCellsReset)
+	{
+		HaveCellsReset = false;
+	}
+	
 }
 
 void Flock::RenderDebug()
 {
  // TODO: Render all the agents in the flock
-	FVector2D Velocity = Agents[0]->GetLinearVelocity();
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,                 // key (-1 = new message every time)
-			0.f,                // display time (0 = one frame)
-			FColor::Green,
-			FString::Printf(
-				TEXT("Velocity: X=%.2f Y=%.2f"),
-				Velocity.X,
-				Velocity.Y
-			)
-		);
-	}
+	// Can't find a render? also agents are rendered by default in this?
+	// FVector2D Velocity = Agents[0]->GetLinearVelocity();
+	// if (GEngine)
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(
+	// 		-1,                 // key (-1 = new message every time)
+	// 		0.f,                // display time (0 = one frame)
+	// 		FColor::Green,
+	// 		FString::Printf(
+	// 			TEXT("Velocity: X=%.2f Y=%.2f"),
+	// 			Velocity.X,
+	// 			Velocity.Y
+	// 		)
+	// 	);
+	// }
+	pPartitionedSpace->RenderCells();
 	
 }
 
@@ -199,7 +238,9 @@ FVector2D Flock::GetAverageNeighborPos() const
 	
 	for (int i = 0; i < NrOfNeighbors; ++i)
 	{
-		avgPosition += Neighbors[i]->GetPosition();
+		// Use getter so no spacepartioning vs no spacepartioning problems
+		auto neighbors = GetNeighbors();
+		avgPosition += neighbors[i]->GetPosition();
 	}
 	
 	// Check so we don't divide by 0
@@ -213,7 +254,9 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 	
 	for (int i = 0; i < NrOfNeighbors; ++i)
 	{
-		avgVelocity += Neighbors[i]->GetLinearVelocity();
+		// Use getter so no spacepartioning vs no spacepartioning problems
+		auto neighbors = GetNeighbors();
+		avgVelocity += neighbors[i]->GetLinearVelocity();
 	}
 	
 	// Check so we don't divide by 0

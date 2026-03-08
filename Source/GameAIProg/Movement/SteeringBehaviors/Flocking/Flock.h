@@ -19,10 +19,10 @@ public:
 	Flock(
 	UWorld* pWorld,
 	TSubclassOf<ASteeringAgent> AgentClass,
-	int FlockSize = 10, 
-	float WorldSize = 100.f, 
+	int FlockSize = 100, // Change
+	float WorldSize = 3000.f, // Originally 100, this seemed small? changed it to worldtrimsize from level_flocking
 	ASteeringAgent* const pAgentToEvade = nullptr, 
-	bool bTrimWorld = false);
+	bool bTrimWorld = true);
 
 	~Flock();
 
@@ -48,7 +48,7 @@ private:
 	// For debug rendering purposes
 	UWorld* pWorld{nullptr};
 	
-	int FlockSize{0};
+	int FlockSize{};
 	TArray<ASteeringAgent*> Agents{};
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
 	std::unique_ptr<CellSpace> pPartitionedSpace{};
@@ -62,6 +62,9 @@ private:
 	int NrOfNeighbors{0};
 
 	ASteeringAgent* pAgentToEvade{nullptr};
+	
+	// Bool for CellspaceReset
+	bool HaveCellsReset{false};
 	
 	//Steering Behaviors
 	std::unique_ptr<Separation> pSeparationBehavior{};
