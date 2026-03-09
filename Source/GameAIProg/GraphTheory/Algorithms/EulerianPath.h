@@ -1,5 +1,7 @@
 #pragma once
 #include <stack>
+
+#include "Net/NetworkMetricsDefs.h"
 #include "Shared/Graph/Graph.h"
 
 namespace GameAI
@@ -34,17 +36,26 @@ namespace GameAI
 	inline Eulerianity EulerianPath::IsEulerian() const
 	{
 		// TODO If the graph is not connected, there can be no Eulerian Trail
+		if (!IsConnected()) return Eulerianity::notEulerian;
 
 		// TODO Count nodes with odd degree 
+		int OddNodes = 0;
+		for (int index = 0; index < m_pGraph->GetNodeCount(); index++)
+		{
+			auto Connections = m_pGraph->FindConnectionsFrom(index);
+			if (Connections.size() % 2 != 0) OddNodes++;
+		}
 
 		// TODO A connected graph with more than 2 nodes with an odd degree (an odd amount of connections) is not Eulerian
+		if (OddNodes > 2) return Eulerianity::notEulerian;
 
 		// TODO A connected graph with exactly 2 nodes with an odd degree is Semi-Eulerian (unless there are only 2 nodes)
 		// TODO An Euler trail can be made, but only starting and ending in these 2 nodes
-
+		if (OddNodes == 2 && m_pGraph->GetNodeCount() != 2) return Eulerianity::semiEulerian; 
+		
 		// TODO A connected graph with no odd nodes is Eulerian
 		
-		return Eulerianity::notEulerian;
+		return Eulerianity::eulerian;
 	}
 
 	inline std::vector<Node*> EulerianPath::FindPath(Eulerianity& eulerianity) const
