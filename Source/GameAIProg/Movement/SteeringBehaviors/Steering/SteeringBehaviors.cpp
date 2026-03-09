@@ -76,6 +76,12 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	return Steering;
 }
 
+void Arrive::SetTargetRadius(float Radius)
+{
+	m_TargetRadius = Radius;
+	m_SlowRadius = Radius * 2; // Slow at double the distance as arriving
+}
+
 SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	Agent.SetIsAutoOrienting(false);
