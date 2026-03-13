@@ -62,6 +62,7 @@ void ALevel_GraphTheory::BeginPlay()
 	Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
 	FVector{0,0,90}, FRotator::ZeroRotator);
 	Agent->SetSteeringBehavior(&PathFollow);
+	Agent->SetActorTickEnabled(false);
 	
 	// Create path for the first time
 	EulerianPath eulerianPath(&Graph);
@@ -135,7 +136,8 @@ void ALevel_GraphTheory::Tick(float DeltaTime)
 		UpdateAgentPath(trail);
 	}
 	
-	
+	// Manually tick actor
+	Agent->Tick(DeltaTime);
 }
 
 void ALevel_GraphTheory::UpdateAgentPath(std::vector<Node*> const& Trail)
