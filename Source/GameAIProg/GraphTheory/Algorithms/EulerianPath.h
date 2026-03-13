@@ -68,10 +68,58 @@ namespace GameAI
 		
 		// TODO Check if there can be an Euler path
 		// TODO If this graph is not eulerian, return the empty path
-		
+		if (eulerianity == Eulerianity::notEulerian) return Path;
+		if (eulerianity == Eulerianity::semiEulerian)
+		{
+			for (int index = 0; index < m_pGraph->GetNodeCount(); index++)
+			{
+				// for semiEulerian we need to start and stop in an odd node, so search and set currentNode to first odd node
+				auto connections = m_pGraph->FindConnectionsFrom(index);
+				if (connections.size() % 2 != 0)
+				{
+					currentNodeId = index;
+					break;
+				}
+			}	
+		}
+		// If eulerian just take the first active NodeId as any node can be used for the start;
+		else if (eulerianity == Eulerianity::eulerian) currentNodeId = Nodes.at(0)->GetId();
 		// TODO Start algorithm loop
 		std::stack<int> nodeStack;
+		// As long as the stack isn't empty or there are connections, keep looping
+		while (!nodeStack.empty() || !graphCopy.FindConnectionsFrom(currentNodeId).empty())
+		{
+			auto connections = graphCopy.FindConnectionsFrom(currentNodeId);
+			if (!connections.empty())
+			{
+				nodeStack.push(currentNodeId);
+				int nextNodeId = connections.at(0)->GetToId();
+				// Not sure if the connection is both ways or not so delete both, but check if they exist
+				auto* connection = graphCopy.FindConnection(currentNodeId, nextNodeId);
+				if (connection)
+				{
+					graphCopy.RemoveConnection(connection);
+				}
 
+				auto* reverseConnection = graphCopy.FindConnection(nextNodeId, currentNodeId);
+				if (reverseConnection)
+				{
+					graphCopy.RemoveConnection(reverseConnection);
+				}
+				currentNodeId = nextNodeId;
+			}
+			else
+			{
+				// No connections, so this node has to be put on the path and we go back to the previous node
+				Path.push_back(m_pGraph->GetNode(currentNodeId).get());
+				if (!nodeStack.empty())
+				{
+					currentNodeId = nodeStack.top();
+					nodeStack.pop();
+				}
+			}
+		}
+		Path.push_back(m_pGraph->GetNode(currentNodeId).get());
 		std::reverse(Path.begin(), Path.end());
 		return Path;
 	}
