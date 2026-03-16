@@ -20,9 +20,8 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 	
 	while (!openList.empty())
 	{
-		// Get Lowest nodeRecord, save iterator to remove this from the openlist later
-		auto currentIt = std::min(openList.begin(), openList.end());
-		currentNodeRecord = *currentIt;
+		// Get Lowest nodeRecord
+		currentNodeRecord = *std::min(openList.begin(), openList.end());
 		
 		// If node is goalnode, stop the loop
 		if (currentNodeRecord.pNode == pGoalNode) break;
@@ -85,7 +84,7 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 		}
 		
 		// Move current node from open to closed list
-		openList.erase(currentIt);
+		openList.erase(std::remove(openList.begin(), openList.end(), currentNodeRecord), openList.end());
 		closedList.push_back(currentNodeRecord);
 	}
 	
