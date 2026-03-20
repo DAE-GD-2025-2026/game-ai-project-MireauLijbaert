@@ -108,7 +108,7 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 	}
 
 	path.push_back(pStartNode);
-	std::reverse(path.begin(), path.end());
+	std::ranges::reverse(path);
 	
 	return path;
 }
