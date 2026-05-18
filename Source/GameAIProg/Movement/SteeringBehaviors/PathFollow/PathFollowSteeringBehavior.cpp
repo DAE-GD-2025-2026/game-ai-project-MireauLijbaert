@@ -46,7 +46,10 @@ SteeringOutput PathFollow::CalculateSteering(float DeltaTime, ASteeringAgent& Ag
 void PathFollow::GotoNextPathPoint()
 {
 	++currentPathIndex;
-	if (currentPathIndex >= static_cast<int>(pathVec.size())) return;
+	if (currentPathIndex >= static_cast<int>(pathVec.size()))
+	{
+		currentPathIndex = 0;
+	}
 	
 	if (currentPathIndex == pathVec.size() -1)
 	{
