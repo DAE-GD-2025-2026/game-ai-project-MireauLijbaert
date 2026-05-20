@@ -22,7 +22,6 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		DrawDebugLine(Agent.GetWorld(),Agent.GetActorLocation(), Agent.GetActorLocation() + VelocityTowardsTarget/2, FColor::Magenta );
 	}
 	
-	
 	return Steering;
 }
 

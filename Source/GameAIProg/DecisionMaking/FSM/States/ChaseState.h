@@ -1,23 +1,23 @@
-#pragma once
+﻿#pragma once
 #include "DecisionMaking/FSM/State.h"
-#include "Movement/SteeringBehaviors/PathFollow/PathFollowSteeringBehavior.h"
+#include "Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
 
 class ASteeringAgent;
 
 namespace GameAI::FSM
 {
-	class PatrolState : public State
+	class ChaseState : public State
 	{
 	public:
-		PatrolState(ASteeringAgent* Agent, std::vector<FVector2D> Waypoints);
-        
+		ChaseState(ASteeringAgent* Guard, ASteeringAgent* Thief);
+
 		virtual void OnEnter(UBlackboardComponent* Blackboard) override;
 		virtual void OnExit(UBlackboardComponent* Blackboard) override;
 		virtual void Update(float DeltaTime, UBlackboardComponent* Blackboard) override;
 
 	private:
-		ASteeringAgent* Agent;
-		PathFollow PathFollowBehavior;
-		std::vector<FVector2D> Waypoints;
+		ASteeringAgent* Guard;
+		ASteeringAgent* Thief;
+		Seek SeekBehavior;
 	};
 }
